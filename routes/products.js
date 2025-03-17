@@ -8,10 +8,9 @@ let BuildQueies = require('../Utils/BuildQuery')
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
   let queries = req.query;
-  let products = await productSchema.find(BuildQueies.QueryProduct(queries));
+  let products = await productSchema.find(BuildQueies.QueryProduct(queries)).populate("categoryID");
   res.send(products);
 });
-
 router.get('/:id', async function(req, res, next) {
   try {
     let product = await productSchema.findById(req.params.id);
@@ -21,12 +20,11 @@ router.get('/:id', async function(req, res, next) {
     });
   } catch (error) {
     res.status(404).send({
-      success:false,
+      success:fail,
       message:error.message
     })
   }
 });
-
 router.post('/', async function(req, res, next) {
   let body = req.body;
   console.log(body);
@@ -39,55 +37,32 @@ router.post('/', async function(req, res, next) {
   await newProduct.save()
   res.send(newProduct);
 });
-
 router.put('/:id', async function(req, res, next) {
-    try {
-        let product = await productSchema.findById(req.params.id);
-        let body = req.body;
-        product.productName = body.productName;
-        product.price = body.price;
-        product.quantity = body.quantity;
-        product.description = body.description;
-        product.imgURL = body.imgURL;
-        product.categoryID = body.category;
-        
-        await product.save();
-        
-        res.status(200).send({
-          success:true,
-          data:product
-        });
-      } catch (error) {
-        res.status(404).send({
-          success:false,
-          message:error.message
-        })
-      }
-});
-
-router.delete('/:id', async function(req, res, next) {
   try {
-    let product = await productSchema.findById(req.params.id);
-    if (!product) {
-      return res.status(404).send({
-        success: false,
-        message: "Product not found"
-      });
-    }
-    
-    product.isDeleted = true;
-    await product.save();
-    
+    let body = req.body;
+    let product = await productSchema.findByIdAndUpdate(req.params.id,
+      body,{new:true});
     res.status(200).send({
-      success: true,
-      message: "Product deleted successfully"
+      success:true,
+      data:product
     });
   } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: error.message
-    });
+    res.status(404).send({
+      success:fail,
+      message:error.message
+    })
   }
+  // let body = req.body;
+  // console.log(body);
+  // let newProduct = new productSchema({
+  //   productName: body.productName,
+  //   price: body.price,
+  //   quantity: body.quantity,
+  //   categoryID: body.category
+  // })
+  // await newProduct.save()
+  // res.send(newProduct);
 });
+
 
 module.exports = router;
