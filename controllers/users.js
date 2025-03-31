@@ -7,7 +7,17 @@ let constants = require('../Utils/constants')
 
 module.exports = {
     getUserById: async function(id){
-        return await userSchema.findById(id);
+        return await userSchema.findById(id).populate("role");
+    },
+    getUserByEmail: async function(email){
+        return await userSchema.findOne({
+            email:email
+        }).populate("role");
+    },
+    getUserByToken: async function(token){
+        return await userSchema.findOne({
+            resetPasswordToken:token
+        }).populate("role");
     },
     createUser:async function(username,password,email,role){
         let roleCheck = await roleSchema.findOne({roleName:role});
@@ -44,32 +54,6 @@ module.exports = {
             }
         }else{
             throw new Error("username or password is incorrect")
-        }
-    },
-    // Thêm hàm resetPassword
-    resetPassword: async function(userId) {
-        const user = await userSchema.findById(userId);
-        if (user) {
-            user.password = "123456";
-            await user.save();
-            return user;
-        } else {
-            throw new Error("Không tìm thấy người dùng");
-        }
-    },
-    // Thêm hàm changePassword
-    changePassword: async function(userId, currentPassword, newPassword) {
-        const user = await userSchema.findById(userId);
-        if (user) {
-            if (bcrypt.compareSync(currentPassword, user.password)) {
-                user.password = newPassword;
-                await user.save();
-                return user;
-            } else {
-                throw new Error("Mật khẩu hiện tại không đúng");
-            }
-        } else {
-            throw new Error("Không tìm thấy người dùng");
         }
     }
 }
